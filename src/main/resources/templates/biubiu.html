@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../plugins/icon.css">
+    <script type="text/javascript" src="../plugins/jquery.min.js"></script>
+    <script type="text/javascript" src="../plugins/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../plugins/easyui-lang-zh_CN.js"></script>
+
+</head>
+<body style="padding:0px;margin:0px">
+
+<table id="dg" style="width:100%;" data-options=""></table>
+
+<div id="toolbar">
+    <table style='width:100%'>
+        <div id="toolbar">
+
+            <form >
+                <div>类型:<select name="type">
+                    <option value="0" selected="selected">综合区</option>
+                    <option value="1">指定区</option>
+                </select>
+                    数据库名:<input type="text" name="db_name" placeholder="DATABASE" value="" id="db_name" /></div>
+                <div>区ID:<input type="text" name="zoneid"  placeholder="ZONE" value="" id="zoneid" /></div>
+                <div>
+                    SQL语句:<textarea name="sqlstr" rows="3" cols="30" ></textarea> <a href="javascript:;" onclick="select_gift();" class="easyui-linkbutton" iconCls="icon-undo" >gift</a>
+                </div>
+
+            </form>
+            <div>
+                <button type="button" onclick="datagrid_load();" class="easyui-linkbutton" iconCls="icon-search" >查询</button>
+            </div>
+        </div>
+    </table>
+
+</div>
+
+
+<script type="text/javascript">
+    //动态展示列和数据
+    var datagrid_load = function () {
+        var columns = new Array();//定义列数组
+        var ser = encodeURI($('form').serialize());//参数需要跟 下面保持一致
+
+
+        $.getJSON('sql_toolbar_port.php?head=1&'+ser, null, function (result) {//通过方法获得后台数据，该方法不唯一。
+            /*var column = {
+                field: 'field', title: '不变的', width: 100, sortable: true, editor: 'textReadonly',
+            }
+            columns.push(column);//将固定写死的列，存入列数组中*/
+
+            for (var i = 0; i < result.length; i++) {//遍历获得的后台数据，这是需要动态显示的表头数据源
+                var column1 = {
+                    field: result[i].field, title: result[i].title , width: 70, sortable: true, editor: {
+                        type: 'numberbox',
+                    }
+                }// field字段和title值都是根据后台的数据来赋值
+                columns.push(column1);//将需要动态显示的列，存入列数组中
+            }
+            initTable(columns);
+        });
+
+
+    }
+
+    $(function () {
+
+    })
+
+
+    function initTable(columns) {
+        grid = $('#dg').datagrid({   //定位到Table标签，Table标签的ID是grid
+            url: 'sql_toolbar_port.php',   //指向后台的Action来获取当前菜单的信息的Json格式的数据
+            title: 'sql查询',
+            iconCls: 'icon-view',
+//                height: 650,
+//                width: '100%',
+            fit: true,
+            idField: 'ID',
+            toolbar: '#toolbar',
+            method : 'post',
+            fitColumns:false,    //横向滚动条
+            queryParams: {zoneid:$("input[name='zoneid']").val(),type:$("select[name='type']").val(),db_name:$("input[name='db_name']").val(),sqlstr:encodeURI($("textarea[name='sqlstr']").val())},
+//            queryParams: $("form").serialize(),  //异步查询的参数
+            columns: [
+                columns,//通过js动态生成，这是关键。
+            ],
+        });
+
+    };
+
+
+    function select_gift() {
+        var obj1 = $("form").serializeArray();
+        $.each(obj1,function (i,field) {
+            alert(field.name + '=' + field.value);
+        })
+
+    }
+
+
+</script>
+</body>
+
+
+</html>
